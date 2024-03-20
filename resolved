@@ -1,0 +1,74 @@
+// 1. Remove duplicates // 
+WITH ABC AS
+(SELECT row_id,row_number()
+OVER 
+(PARTITION BY
+client_id, product_id,quantity_of_items_sold ORDER BY row_id) AS RID
+FROM
+TXNS
+)
+SELECT TXNS.*
+FROM
+TXNS
+INNER JOIN 
+ABC ON TXNS.row_id = ABC.row_id
+WHERE
+ABC.RID =1
+
+// TXNS is the name of the data base, short for transactions. // 
+
+// 1.2 Fill null values 
+I started by identifiying which columns had null values// 
+
+SELECT DISTINCT store_id, store_name
+FROM
+TXNS
+WHERE 
+store_name is not null 
+
+SELECT DISTINCT client_id, client_name
+FROM
+TXNS
+WHERE 
+client_name is not null
+
+SELECT DISTINCT product_id, product_name
+FROM
+TXNS
+WHERE 
+product_name is not null
+
+// Snowflake reads one SELECT at the time, hence, had to make this exercise in 3 parts // 
+
+//3.a// 
+CREATE TABLE Client_1 AS
+SELECT DISTINCT client_id, client_name, client_lastname, email
+FROM
+TXNS
+
+//3.b// 
+CREATE TABLE Store AS
+SELECT DISTINCT store_id, store_name, location
+FROM
+TXNS
+
+//3.c// 
+SELECT DISTINCT product_id, product_name, category, brand
+FROM
+TXNS
+
+//3.d// 
+
+CREATE TABLE Address AS
+SELECT DISTINCT client_id, address_id, street, city, state, zip_code
+FROM
+TXNS
+
+//4.a// 
+CREATE TABLE FactSales AS (
+transaction_id INT PRIMARY KEY
+quantity_of_items_sold INT,
+unit_price INT,
+discount INT )
+FROM
+TXNS
